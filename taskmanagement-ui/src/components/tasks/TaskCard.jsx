@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { deleteTask, updateTask } from '../../store/slices/taskSlice';
-import { Edit2, Trash2, Clock } from 'lucide-react';
+import { Edit2, Trash2, Clock, Calendar, User, Flag } from 'lucide-react';
 import Button from '../common/Button';
 import TaskForm from './TaskForm';
-import { TASK_STATUS_COLORS, TASK_STATUS_LABELS } from '../../utils/constants';
-import { formatDateTime } from '../../utils/helpers';
+import { 
+  TASK_STATUS_COLORS, 
+  TASK_STATUS_LABELS,
+  TASK_PRIORITY_COLORS,
+  TASK_PRIORITY_LABELS 
+} from '../../utils/constants';
+import { formatDateTime, formatDate } from '../../utils/helpers';
 
 const TaskCard = ({ task }) => {
   const dispatch = useDispatch();
@@ -28,21 +33,38 @@ const TaskCard = ({ task }) => {
     try {
       await dispatch(updateTask({
         id: task.id,
-        taskData: { ...task, status: newStatus }
+        taskData: { 
+          title: task.title,
+          description: task.description,
+          status: newStatus,
+          priority: task.priority,
+          dueDate: task.dueDate,
+          projectId: task.project?.id,
+          assignedToId: task.assignedTo?.id,
+        }
       })).unwrap();
     } catch (error) {
       // Error handled in slice
     }
   };
 
+  const isPastDue = task.dueDate && new Date(task.dueDate) < new Date();
+
   return (
     <>
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
-          <h3 className="text-lg font-semibold text-gray-900 flex-1">
-            {task.title}
-          </h3>
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold text-gray-900">
+              {task.title}
+            </h3>
+            {task.project && (
+              <p className="text-xs text-gray-500 mt-1">
+                📁 {task.project.name}
+              </p>
+            )}
+          </div>
           <div className="flex items-center gap-2 ml-2">
             <button
               onClick={() => setIsEditModalOpen(true)}
@@ -62,6 +84,14 @@ const TaskCard = ({ task }) => {
           </div>
         </div>
 
+        {/* Priority Badge */}
+        <div className="mb-3">
+          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${TASK_PRIORITY_COLORS[task.priority]}`}>
+            <Flag size={12} />
+            {TASK_PRIORITY_LABELS[task.priority]}
+          </span>
+        </div>
+
         {/* Description */}
         {task.description && (
           <p className="text-gray-600 text-sm mb-4 line-clamp-2">
@@ -69,8 +99,27 @@ const TaskCard = ({ task }) => {
           </p>
         )}
 
+        {/* Assigned To */}
+        {task.assignedTo && (
+          <div className="flex items-center gap-2 mb-3 text-sm text-gray-600">
+            <User size={14} />
+            <span>Assigned to {task.assignedTo.fullName}</span>
+          </div>
+        )}
+
+        {/* Due Date */}
+        {task.dueDate && (
+          <div className={`flex items-center gap-2 mb-3 text-sm ${isPastDue ? 'text-red-600' : 'text-gray-600'}`}>
+            <Calendar size={14} />
+            <span>
+              Due: {formatDate(task.dueDate)}
+              {isPastDue && ' (Overdue)'}
+            </span>
+          </div>
+        )}
+
         {/* Footer */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pt-3 border-t border-gray-200">
           {/* Status Dropdown */}
           <select
             value={task.status}
@@ -88,7 +137,7 @@ const TaskCard = ({ task }) => {
 
           {/* Timestamp */}
           <div className="flex items-center gap-1 text-xs text-gray-500">
-            <Clock size={14} />
+            <Clock size={12} />
             <span>{formatDateTime(task.createdAt)}</span>
           </div>
         </div>

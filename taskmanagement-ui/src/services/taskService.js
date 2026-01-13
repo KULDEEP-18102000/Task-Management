@@ -8,6 +8,12 @@ class TaskService {
     return response.data;
   }
 
+  // Get tasks by project (NEW)
+  async getTasksByProject(projectId) {
+    const response = await api.get(API_ENDPOINTS.TASKS_BY_PROJECT(projectId));
+    return response.data;
+  }
+
   // Get single task by ID
   async getTaskById(id) {
     const response = await api.get(API_ENDPOINTS.TASK_BY_ID(id));
