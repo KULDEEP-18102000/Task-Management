@@ -3,6 +3,7 @@ package com.taskmanagement.service;
 import com.taskmanagement.dto.request.LoginRequest;
 import com.taskmanagement.dto.request.RegisterRequest;
 import com.taskmanagement.dto.response.AuthResponse;
+import com.taskmanagement.entity.Role;
 import com.taskmanagement.entity.User;
 import com.taskmanagement.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,12 +32,13 @@ public class AuthService {
             throw new RuntimeException("Email already exists");
         }
 
-        // Create new user
+        // Create new user with USER role by default
         var user = User.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .fullName(request.getFullName())
+                .role(Role.USER)  // Default role
                 .build();
 
         userRepository.save(user);

@@ -17,14 +17,22 @@ import java.util.List;
 @RequestMapping("/api/tasks")
 @RequiredArgsConstructor
 public class TaskController {
-
+    
     private final TaskService taskService;
-
+    
     @GetMapping
     public ResponseEntity<List<TaskResponse>> getAllTasks(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(taskService.getAllTasks(user));
     }
-
+    
+    @GetMapping("/project/{projectId}")
+    public ResponseEntity<List<TaskResponse>> getTasksByProject(
+            @PathVariable Long projectId,
+            @AuthenticationPrincipal User user
+    ) {
+        return ResponseEntity.ok(taskService.getTasksByProject(projectId, user));
+    }
+    
     @GetMapping("/{id}")
     public ResponseEntity<TaskResponse> getTaskById(
             @PathVariable Long id,
@@ -32,7 +40,7 @@ public class TaskController {
     ) {
         return ResponseEntity.ok(taskService.getTaskById(id, user));
     }
-
+    
     @PostMapping
     public ResponseEntity<TaskResponse> createTask(
             @Valid @RequestBody TaskRequest request,
@@ -41,7 +49,7 @@ public class TaskController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(taskService.createTask(request, user));
     }
-
+    
     @PutMapping("/{id}")
     public ResponseEntity<TaskResponse> updateTask(
             @PathVariable Long id,
@@ -50,7 +58,7 @@ public class TaskController {
     ) {
         return ResponseEntity.ok(taskService.updateTask(id, request, user));
     }
-
+    
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTask(
             @PathVariable Long id,
