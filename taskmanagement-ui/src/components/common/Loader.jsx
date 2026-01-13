@@ -1,0 +1,27 @@
+import React from 'react';
+
+const Loader = ({ size = 'md', fullScreen = false }) => {
+  const sizes = {
+    sm: 'h-6 w-6',
+    md: 'h-12 w-12',
+    lg: 'h-16 w-16',
+  };
+
+  const loader = (
+    <div className="flex items-center justify-center">
+      <div className={`${sizes[size]} border-4 border-gray-200 border-t-primary-600 rounded-full animate-spin`}></div>
+    </div>
+  );
+
+  if (fullScreen) {
+    return (
+      <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center z-50">
+        {loader}
+      </div>
+    );
+  }
+
+  return loader;
+};
+
+export default Loader;
