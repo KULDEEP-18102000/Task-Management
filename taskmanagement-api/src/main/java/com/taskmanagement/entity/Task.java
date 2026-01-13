@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -30,9 +31,24 @@ public class Task {
     @Column(nullable = false)
     private TaskStatus status;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TaskPriority priority;  // NEW: Task priority
+
+    @Column(name = "due_date")
+    private LocalDate dueDate;  // NEW: Due date
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "project_id")
+    private Project project;  // NEW: Associated project
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_id", nullable = false)
+    private User createdBy;  // Task creator
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_to_id")
+    private User assignedTo;  // NEW: Assigned team member
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -47,6 +63,9 @@ public class Task {
         if (status == null) {
             status = TaskStatus.TODO;
         }
+        if (priority == null) {
+            priority = TaskPriority.MEDIUM;
+        }
     }
 
     @PreUpdate
@@ -56,5 +75,9 @@ public class Task {
 
     public enum TaskStatus {
         TODO, IN_PROGRESS, COMPLETED
+    }
+
+    public enum TaskPriority {
+        LOW, MEDIUM, HIGH, CRITICAL
     }
 }

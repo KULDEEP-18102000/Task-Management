@@ -35,6 +35,10 @@ public class User implements UserDetails {
 
     @Column(name = "full_name")
     private String fullName;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;  // NEW: User role
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -46,6 +50,9 @@ public class User implements UserDetails {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        if (role == null) {
+            role = Role.USER;  // Default role
+        }
     }
 
     @PreUpdate
@@ -56,7 +63,9 @@ public class User implements UserDetails {
     // UserDetails implementation
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.emptyList();
+        return Collections.singletonList(
+            new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + role.name())
+        );
     }
 
     @Override
