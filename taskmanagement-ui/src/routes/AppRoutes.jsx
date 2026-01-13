@@ -4,6 +4,8 @@ import PrivateRoute from './PrivateRoute';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import DashboardPage from '../pages/DashboardPage';
+import ProjectsPage from '../pages/ProjectsPage';
+import ProjectDetailsPage from '../pages/ProjectDetailsPage';
 import NotFoundPage from '../pages/NotFoundPage';
 
 const AppRoutes = () => {
@@ -19,6 +21,24 @@ const AppRoutes = () => {
         element={
           <PrivateRoute>
             <DashboardPage />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/projects"
+        element={
+          <PrivateRoute>
+            <ProjectsPage />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/projects/:id"
+        element={
+          <PrivateRoute>
+            <ProjectDetailsPage />
           </PrivateRoute>
         }
       />
