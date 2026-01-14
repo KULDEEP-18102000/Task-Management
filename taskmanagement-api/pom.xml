@@ -82,6 +82,18 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- WebSocket -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-websocket</artifactId>
+		</dependency>
+
+		<!-- For JSON messaging -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+		</dependency>
+
 		<!-- Testing (ONE dependency is enough) -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
