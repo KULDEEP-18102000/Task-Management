@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../store/slices/authSlice';
 import { LogOut, CheckSquare, FolderOpen, LayoutDashboard, Menu, X } from 'lucide-react';
 import Button from '../common/Button';
+import NotificationBell from '../notifications/NotificationBell';  // NEW
 import { getInitials } from '../../utils/helpers';
 import { USER_ROLES } from '../../utils/constants';
 
@@ -59,8 +60,13 @@ const Navbar = () => {
             })}
           </div>
 
-          {/* User Menu */}
+          {/* Right Side */}
           <div className="flex items-center gap-4">
+            {/* Notification Bell - Desktop */}
+            <div className="hidden md:block">
+              <NotificationBell />
+            </div>
+
             {/* Desktop User Info */}
             <div className="hidden md:flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center text-white font-semibold">
@@ -123,6 +129,11 @@ const Navbar = () => {
                   </Link>
                 );
               })}
+            </div>
+
+            {/* Mobile Notifications */}
+            <div className="px-3 py-2 mb-4">
+              <NotificationBell />
             </div>
 
             {/* Mobile User Info */}

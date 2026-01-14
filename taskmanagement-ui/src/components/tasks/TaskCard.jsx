@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { deleteTask, updateTask } from '../../store/slices/taskSlice';
 import { Edit2, Trash2, Clock, Calendar, User, Flag } from 'lucide-react';
 import Button from '../common/Button';
@@ -14,6 +15,7 @@ import { formatDateTime, formatDate } from '../../utils/helpers';
 
 const TaskCard = ({ task }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -56,7 +58,10 @@ const TaskCard = ({ task }) => {
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 
+              className="text-lg font-semibold text-gray-900 cursor-pointer hover:text-primary-600 transition-colors"
+              onClick={() => navigate(`/tasks/${task.id}`)}
+            >
               {task.title}
             </h3>
             {task.project && (

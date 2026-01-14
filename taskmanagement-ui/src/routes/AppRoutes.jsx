@@ -6,6 +6,7 @@ import RegisterPage from '../pages/RegisterPage';
 import DashboardPage from '../pages/DashboardPage';
 import ProjectsPage from '../pages/ProjectsPage';
 import ProjectDetailsPage from '../pages/ProjectDetailsPage';
+import TaskDetailsPage from '../pages/TaskDetailsPage';  // NEW
 import NotFoundPage from '../pages/NotFoundPage';
 
 const AppRoutes = () => {
@@ -39,6 +40,15 @@ const AppRoutes = () => {
         element={
           <PrivateRoute>
             <ProjectDetailsPage />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/tasks/:id"
+        element={
+          <PrivateRoute>
+            <TaskDetailsPage />
           </PrivateRoute>
         }
       />
