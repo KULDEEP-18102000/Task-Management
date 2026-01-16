@@ -10,7 +10,7 @@ import java.util.Set;
 
 @Data
 @NoArgsConstructor
-@antml:AllArgsConstructor
+@AllArgsConstructor
 public class ProjectRequest {
     
     @NotBlank(message = "Project name is required")
