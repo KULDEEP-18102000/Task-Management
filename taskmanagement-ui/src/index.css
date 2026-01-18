@@ -57,3 +57,21 @@ label:has(input[type="checkbox"]),
 label:has(input[type="radio"]) {
   cursor: pointer;
 }
+
+/* Cursor pointer for select dropdowns and options */
+select,
+select option {
+  cursor: pointer !important;
+}
+
+/* Force pointer cursor on select and all its states */
+select:hover,
+select:focus,
+select:active {
+  cursor: pointer !important;
+}
+
+/* Force pointer cursor on options */
+option {
+  cursor: pointer !important;
+}
