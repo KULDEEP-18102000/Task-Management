@@ -179,7 +179,7 @@ const ProjectForm = ({ isOpen, onClose, project = null, mode = 'create' }) => {
                       type="checkbox"
                       checked={formData.memberIds.includes(member.id)}
                       onChange={() => handleMemberToggle(member.id)}
-                      className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                      className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 cursor-pointer"
                     />
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-900">
