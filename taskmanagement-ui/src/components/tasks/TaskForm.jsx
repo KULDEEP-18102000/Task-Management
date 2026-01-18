@@ -104,8 +104,8 @@ const TaskForm = ({ isOpen, onClose, task = null, mode = 'create', projectId = n
       status: formData.status,
       priority: formData.priority,
       dueDate: formData.dueDate || null,
-      projectId: formData.projectId || null,
-      assignedToId: formData.assignedToId || null,
+      projectId: formData.projectId ? parseInt(formData.projectId) : null,
+      assignedToId: formData.assignedToId ? parseInt(formData.assignedToId) : null,
     };
 
     try {
