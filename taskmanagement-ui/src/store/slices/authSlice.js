@@ -74,6 +74,7 @@ const authSlice = createSlice({
           username: action.payload.username,
           email: action.payload.email,
           fullName: action.payload.fullName,
+          role: action.payload.role,
         };
         state.token = action.payload.token;
         state.error = null;
@@ -100,6 +101,7 @@ const authSlice = createSlice({
           username: action.payload.username,
           email: action.payload.email,
           fullName: action.payload.fullName,
+          role: action.payload.role,
         };
         state.token = action.payload.token;
         state.error = null;
