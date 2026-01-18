@@ -17,6 +17,7 @@ public class ProjectResponse {
     private String name;
     private String description;
     private UserSummary owner;
+    private UserSummary manager;  // Project manager
     private Set<UserSummary> members;
     private Integer taskCount;
     private LocalDateTime createdAt;

@@ -48,8 +48,13 @@ const ProjectCard = ({ project }) => {
               {project.name}
             </h3>
             <p className="text-sm text-gray-500">
-              By {project.owner.fullName}
+              Created by {project.owner.fullName}
             </p>
+            {project.manager && (
+              <p className="text-xs text-primary-600">
+                👤 Manager: {project.manager.fullName}
+              </p>
+            )}
           </div>
         </div>
 

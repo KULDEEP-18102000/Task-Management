@@ -125,11 +125,16 @@ const ProjectDetailsPage = () => {
           </div>
         </div>
 
-        {/* Project Owner */}
+        {/* Project Owner & Manager */}
         <div className="mt-4 pt-4 border-t border-gray-200">
           <p className="text-sm text-gray-600">
-            Owned by <span className="font-medium text-gray-900">{currentProject.owner.fullName}</span>
+            Created by <span className="font-medium text-gray-900">{currentProject.owner.fullName}</span>
           </p>
+          {currentProject.manager && (
+            <p className="text-sm text-primary-600 mt-1">
+              👤 Managed by <span className="font-medium">{currentProject.manager.fullName}</span>
+            </p>
+          )}
         </div>
 
         {/* Team Members */}

@@ -30,7 +30,11 @@ public class Project {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
-    private User owner;  // Project owner (usually Manager or Admin)
+    private User owner;  // Project creator (for audit trail)
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "manager_id")
+    private User manager;  // Project manager (can be assigned by Admin)
     
     @ManyToMany
     @JoinTable(

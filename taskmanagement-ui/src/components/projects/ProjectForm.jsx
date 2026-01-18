@@ -16,6 +16,7 @@ const ProjectForm = ({ isOpen, onClose, project = null, mode = 'create' }) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    managerId: '',
     memberIds: [],
   });
 
@@ -46,6 +47,7 @@ const ProjectForm = ({ isOpen, onClose, project = null, mode = 'create' }) => {
       setFormData({
         name: project.name,
         description: project.description || '',
+        managerId: project.manager?.id || '',
         memberIds: project.members?.map(m => m.id) || [],
       });
     } else if (isOpen && mode === 'create') {
@@ -53,6 +55,7 @@ const ProjectForm = ({ isOpen, onClose, project = null, mode = 'create' }) => {
       setFormData({
         name: '',
         description: '',
+        managerId: '',
         memberIds: [],
       });
     }
@@ -98,11 +101,18 @@ const ProjectForm = ({ isOpen, onClose, project = null, mode = 'create' }) => {
     if (!validate()) return;
 
     setLoading(true);
+    
+    // Prepare project data with proper types
+    const projectData = {
+      ...formData,
+      managerId: formData.managerId ? parseInt(formData.managerId) : null,
+    };
+    
     try {
       if (mode === 'create') {
-        await dispatch(createProject(formData)).unwrap();
+        await dispatch(createProject(projectData)).unwrap();
       } else {
-        await dispatch(updateProject({ id: project.id, projectData: formData })).unwrap();
+        await dispatch(updateProject({ id: project.id, projectData })).unwrap();
       }
       handleClose();
     } catch (error) {
@@ -116,6 +126,7 @@ const ProjectForm = ({ isOpen, onClose, project = null, mode = 'create' }) => {
     setFormData({
       name: '',
       description: '',
+      managerId: '',
       memberIds: [],
     });
     setErrors({});
@@ -160,6 +171,32 @@ const ProjectForm = ({ isOpen, onClose, project = null, mode = 'create' }) => {
           {errors.description && (
             <p className="mt-1 text-sm text-red-600">{errors.description}</p>
           )}
+        </div>
+
+        {/* Project Manager Selection */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Project Manager (Optional)
+          </label>
+          <select
+            name="managerId"
+            value={formData.managerId}
+            onChange={handleChange}
+            disabled={loadingMembers}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-100"
+          >
+            <option value="">Assign to me</option>
+            {teamMembers
+              .filter(member => member.role === 'ADMIN' || member.role === 'MANAGER')
+              .map((member) => (
+                <option key={member.id} value={member.id}>
+                  {member.fullName} ({member.role})
+                </option>
+              ))}
+          </select>
+          <p className="mt-1 text-xs text-gray-500">
+            Only Admins and Managers can be assigned as project managers
+          </p>
         </div>
 
         {/* Team Members Selection */}

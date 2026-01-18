@@ -21,4 +21,6 @@ public class ProjectRequest {
     private String description;
     
     private Set<Long> memberIds;  // User IDs to add as team members
+    
+    private Long managerId;  // User ID to assign as project manager
 }

@@ -69,6 +69,22 @@ public class ProjectService {
                 .members(new HashSet<>())
                 .build();
         
+        // Assign manager
+        if (request.getManagerId() != null) {
+            User manager = userRepository.findById(request.getManagerId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Manager not found with id: " + request.getManagerId()));
+            
+            // Validate manager role
+            if (manager.getRole() != Role.ADMIN && manager.getRole() != Role.MANAGER) {
+                throw new UnauthorizedException("Only Admins or Managers can be assigned as project managers");
+            }
+            
+            project.setManager(manager);
+        } else {
+            // If no manager specified, creator becomes the manager
+            project.setManager(currentUser);
+        }
+        
         // Add team members if provided
         if (request.getMemberIds() != null && !request.getMemberIds().isEmpty()) {
             Set<User> members = new HashSet<>();
@@ -94,6 +110,19 @@ public class ProjectService {
         
         project.setName(request.getName());
         project.setDescription(request.getDescription());
+        
+        // Update manager if provided
+        if (request.getManagerId() != null) {
+            User manager = userRepository.findById(request.getManagerId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Manager not found with id: " + request.getManagerId()));
+            
+            // Validate manager role
+            if (manager.getRole() != Role.ADMIN && manager.getRole() != Role.MANAGER) {
+                throw new UnauthorizedException("Only Admins or Managers can be assigned as project managers");
+            }
+            
+            project.setManager(manager);
+        }
         
         // Update team members if provided
         if (request.getMemberIds() != null) {
@@ -188,6 +217,7 @@ public class ProjectService {
                 .name(project.getName())
                 .description(project.getDescription())
                 .owner(mapUserToSummary(project.getOwner()))
+                .manager(project.getManager() != null ? mapUserToSummary(project.getManager()) : null)
                 .members(project.getMembers().stream()
                         .map(this::mapUserToSummary)
                         .collect(Collectors.toSet()))
