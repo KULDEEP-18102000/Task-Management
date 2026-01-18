@@ -5,6 +5,7 @@ import { deleteTask, updateTask } from '../../store/slices/taskSlice';
 import { Edit2, Trash2, Clock, Calendar, User, Flag } from 'lucide-react';
 import Button from '../common/Button';
 import TaskForm from './TaskForm';
+import ConfirmModal from '../common/ConfirmModal';
 import { 
   TASK_STATUS_COLORS, 
   TASK_STATUS_LABELS,
@@ -17,16 +18,16 @@ const TaskCard = ({ task }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this task?')) {
-      setIsDeleting(true);
-      try {
-        await dispatch(deleteTask(task.id)).unwrap();
-      } catch (error) {
-        setIsDeleting(false);
-      }
+    setIsDeleting(true);
+    try {
+      await dispatch(deleteTask(task.id)).unwrap();
+      setIsDeleteModalOpen(false);
+    } catch (error) {
+      setIsDeleting(false);
     }
   };
 
@@ -79,7 +80,7 @@ const TaskCard = ({ task }) => {
               <Edit2 size={18} />
             </button>
             <button
-              onClick={handleDelete}
+              onClick={() => setIsDeleteModalOpen(true)}
               disabled={isDeleting}
               className="text-gray-400 hover:text-red-600 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               title="Delete task"
@@ -157,6 +158,19 @@ const TaskCard = ({ task }) => {
           mode="edit"
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+        title="Delete Task"
+        message={`Are you sure you want to delete "${task.title}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        loading={isDeleting}
+      />
     </>
   );
 };
