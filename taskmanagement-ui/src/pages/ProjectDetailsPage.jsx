@@ -171,13 +171,9 @@ const ProjectDetailsPage = () => {
             <h3 className="text-lg font-medium text-gray-900 mb-2">
               No tasks yet
             </h3>
-            <p className="text-gray-600 mb-4">
-              Create your first task to get started!
+            <p className="text-gray-600">
+              Create your first task using the "New Task" button above!
             </p>
-            <Button onClick={() => setIsCreateTaskOpen(true)}>
-              <Plus size={20} />
-              Create Task
-            </Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
