@@ -11,6 +11,9 @@ import com.taskmanagement.entity.Task;
 import com.taskmanagement.entity.User;
 import com.taskmanagement.exception.ResourceNotFoundException;
 import com.taskmanagement.exception.UnauthorizedException;
+import com.taskmanagement.repository.ActivityRepository;
+import com.taskmanagement.repository.CommentRepository;
+import com.taskmanagement.repository.NotificationRepository;
 import com.taskmanagement.repository.ProjectRepository;
 import com.taskmanagement.repository.TaskRepository;
 import com.taskmanagement.repository.UserRepository;
@@ -32,6 +35,9 @@ public class TaskService {
     private final ActivityService activityService;
     private final NotificationService notificationService;
     private final SimpMessagingTemplate messagingTemplate;  // NEW: WebSocket
+    private final CommentRepository commentRepository;
+    private final ActivityRepository activityRepository;
+    private final NotificationRepository notificationRepository;
     
     @Transactional(readOnly = true)
     public List<TaskResponse> getAllTasks(User currentUser) {
@@ -281,6 +287,17 @@ public class TaskService {
         // Send WebSocket update before deletion
         sendTaskUpdate("DELETED", task, null);
         
+        // Delete related records first to avoid foreign key constraints
+        // 1. Delete comments
+        commentRepository.deleteByTaskId(task.getId());
+        
+        // 2. Delete notifications related to this task
+        notificationRepository.deleteByTaskId(task.getId());
+        
+        // 3. Update activities to set task_id to null (preserve history)
+        activityRepository.setTaskIdToNullForTask(task.getId());
+        
+        // 4. Finally, delete the task
         taskRepository.delete(task);
     }
     

@@ -32,4 +32,9 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
     // Get user's recent activities
     @Query("SELECT a FROM Activity a WHERE a.user.id = :userId ORDER BY a.createdAt DESC")
     List<Activity> findByUserIdOrderByCreatedAtDesc(@Param("userId") Long userId, Pageable pageable);
+    
+    // Set task_id to null for all activities related to a task (preserve history)
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("UPDATE Activity a SET a.task = null WHERE a.task.id = :taskId")
+    void setTaskIdToNullForTask(@Param("taskId") Long taskId);
 }
