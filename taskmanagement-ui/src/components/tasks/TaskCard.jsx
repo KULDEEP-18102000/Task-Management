@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { deleteTask, updateTask } from '../../store/slices/taskSlice';
 import { Edit2, Trash2, Clock, Calendar, User, Flag } from 'lucide-react';
@@ -10,16 +10,24 @@ import {
   TASK_STATUS_COLORS, 
   TASK_STATUS_LABELS,
   TASK_PRIORITY_COLORS,
-  TASK_PRIORITY_LABELS 
+  TASK_PRIORITY_LABELS,
+  USER_ROLES 
 } from '../../utils/constants';
 import { formatDateTime, formatDate } from '../../utils/helpers';
 
 const TaskCard = ({ task }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Permission checks
+  const isAdmin = user?.role === USER_ROLES.ADMIN;
+  const isTaskCreator = task.createdBy?.id === user?.id;
+  const isProjectOwner = task.project?.owner?.id === user?.id;
+  const canDelete = isAdmin || isTaskCreator || isProjectOwner;
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -79,14 +87,16 @@ const TaskCard = ({ task }) => {
             >
               <Edit2 size={18} />
             </button>
-            <button
-              onClick={() => setIsDeleteModalOpen(true)}
-              disabled={isDeleting}
-              className="text-gray-400 hover:text-red-600 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Delete task"
-            >
-              <Trash2 size={18} />
-            </button>
+            {canDelete && (
+              <button
+                onClick={() => setIsDeleteModalOpen(true)}
+                disabled={isDeleting}
+                className="text-gray-400 hover:text-red-600 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Delete task"
+              >
+                <Trash2 size={18} />
+              </button>
+            )}
           </div>
         </div>
 
