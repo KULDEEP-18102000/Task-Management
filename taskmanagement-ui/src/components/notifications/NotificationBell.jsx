@@ -24,7 +24,7 @@ const NotificationBell = () => {
     <>
       <button
         onClick={() => setIsPanelOpen(true)}
-        className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
+        className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
       >
         <Bell size={24} />
         

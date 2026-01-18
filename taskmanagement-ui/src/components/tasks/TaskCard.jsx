@@ -73,7 +73,7 @@ const TaskCard = ({ task }) => {
           <div className="flex items-center gap-2 ml-2">
             <button
               onClick={() => setIsEditModalOpen(true)}
-              className="text-gray-400 hover:text-primary-600 transition-colors"
+              className="text-gray-400 hover:text-primary-600 transition-colors cursor-pointer"
               title="Edit task"
             >
               <Edit2 size={18} />
@@ -81,7 +81,7 @@ const TaskCard = ({ task }) => {
             <button
               onClick={handleDelete}
               disabled={isDeleting}
-              className="text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+              className="text-gray-400 hover:text-red-600 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               title="Delete task"
             >
               <Trash2 size={18} />

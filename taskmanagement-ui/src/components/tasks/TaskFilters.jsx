@@ -26,7 +26,7 @@ const TaskFilters = () => {
           key={item.value}
           onClick={() => dispatch(setFilter(item.value))}
           className={`
-            px-4 py-2 rounded-lg font-medium transition-colors
+            px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer
             ${filter === item.value
               ? 'bg-primary-600 text-white'
               : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'

@@ -52,7 +52,7 @@ const NotificationPanel = ({ isOpen, onClose }) => {
           
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
           >
             <X size={24} />
           </button>
@@ -62,7 +62,7 @@ const NotificationPanel = ({ isOpen, onClose }) => {
         <div className="flex border-b border-gray-200">
           <button
             onClick={() => setShowUnreadOnly(false)}
-            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors cursor-pointer ${
               !showUnreadOnly
                 ? 'text-primary-600 border-b-2 border-primary-600'
                 : 'text-gray-600 hover:text-gray-900'
@@ -72,7 +72,7 @@ const NotificationPanel = ({ isOpen, onClose }) => {
           </button>
           <button
             onClick={() => setShowUnreadOnly(true)}
-            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors cursor-pointer ${
               showUnreadOnly
                 ? 'text-primary-600 border-b-2 border-primary-600'
                 : 'text-gray-600 hover:text-gray-900'

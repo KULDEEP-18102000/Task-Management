@@ -50,7 +50,7 @@ const CommentItem = ({ comment, taskId, onDelete }) => {
             <button
               onClick={handleDelete}
               disabled={isDeleting}
-              className="text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+              className="text-gray-400 hover:text-red-600 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               title="Delete comment"
             >
               <Trash2 size={16} />

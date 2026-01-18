@@ -57,7 +57,7 @@ const ProjectCard = ({ project }) => {
           <div className="relative">
             <button
               onClick={() => setShowMenu(!showMenu)}
-              className="text-gray-400 hover:text-gray-600 p-1"
+              className="text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
             >
               <MoreVertical size={20} />
             </button>
@@ -69,7 +69,7 @@ const ProjectCard = ({ project }) => {
                     navigate(`/projects/${project.id}/edit`);
                     setShowMenu(false);
                   }}
-                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
                 >
                   <Edit2 size={16} />
                   Edit Project
@@ -77,7 +77,7 @@ const ProjectCard = ({ project }) => {
                 <button
                   onClick={handleDelete}
                   disabled={isDeleting}
-                  className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 disabled:opacity-50"
+                  className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Trash2 size={16} />
                   Delete Project
@@ -114,7 +114,7 @@ const ProjectCard = ({ project }) => {
         </span>
         <button
           onClick={handleViewProject}
-          className="text-sm font-medium text-primary-600 hover:text-primary-700"
+          className="text-sm font-medium text-primary-600 hover:text-primary-700 cursor-pointer"
         >
           View Details →
         </button>
