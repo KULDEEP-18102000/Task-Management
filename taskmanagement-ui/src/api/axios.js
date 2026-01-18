@@ -28,12 +28,15 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Handle 401 Unauthorized - redirect to login
+    // Handle 401 Unauthorized - authentication failed (invalid/expired token)
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';
     }
+    
+    // 403 Forbidden - authorization failed (user doesn't have permission)
+    // Don't logout, just let the error propagate to be handled by the component
     
     return Promise.reject(error);
   }
