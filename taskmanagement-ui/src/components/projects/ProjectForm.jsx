@@ -42,14 +42,21 @@ const ProjectForm = ({ isOpen, onClose, project = null, mode = 'create' }) => {
 
   // Populate form if editing
   useEffect(() => {
-    if (project && mode === 'edit') {
+    if (isOpen && project && mode === 'edit') {
       setFormData({
         name: project.name,
         description: project.description || '',
         memberIds: project.members?.map(m => m.id) || [],
       });
+    } else if (isOpen && mode === 'create') {
+      // Reset form for create mode
+      setFormData({
+        name: '',
+        description: '',
+        memberIds: [],
+      });
     }
-  }, [project, mode]);
+  }, [isOpen, project, mode]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
