@@ -1,25 +1,35 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import { ArrowLeft, Calendar, Flag, User, Edit2, Trash2 } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import CommentList from '../components/comments/CommentList';
 import ActivityFeed from '../components/activities/ActivityFeed';
 import Button from '../components/common/Button';
 import Loader from '../components/common/Loader';
+import TaskForm from '../components/tasks/TaskForm';
+import ConfirmModal from '../components/common/ConfirmModal';
+import { deleteTask } from '../store/slices/taskSlice';
 import taskService from '../services/taskService';
 import { 
   TASK_STATUS_LABELS, 
   TASK_STATUS_COLORS,
   TASK_PRIORITY_LABELS,
-  TASK_PRIORITY_COLORS 
+  TASK_PRIORITY_COLORS,
+  USER_ROLES 
 } from '../utils/constants';
 import { formatDate } from '../utils/helpers';
 
 const TaskDetailsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
   const [task, setTask] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchTask();
@@ -36,6 +46,27 @@ const TaskDetailsPage = () => {
       setLoading(false);
     }
   };
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await dispatch(deleteTask(task.id)).unwrap();
+      setIsDeleteModalOpen(false);
+      navigate('/dashboard'); // Redirect to dashboard after deletion
+    } catch (error) {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleTaskUpdated = () => {
+    fetchTask(); // Refresh task data after edit
+  };
+
+  // Permission checks
+  const isAdmin = user?.role === USER_ROLES.ADMIN;
+  const isTaskCreator = task?.createdBy?.id === user?.id;
+  const isProjectOwner = task?.project?.owner?.id === user?.id;
+  const canDelete = isAdmin || isTaskCreator || isProjectOwner;
 
   if (loading) {
     return (
@@ -93,14 +124,24 @@ const TaskDetailsPage = () => {
               </div>
               
               <div className="flex gap-2">
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setIsEditModalOpen(true)}
+                >
                   <Edit2 size={16} />
                   Edit
                 </Button>
-                <Button variant="outline" size="sm">
-                  <Trash2 size={16} />
-                  Delete
-                </Button>
+                {canDelete && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setIsDeleteModalOpen(true)}
+                  >
+                    <Trash2 size={16} />
+                    Delete
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -167,6 +208,32 @@ const TaskDetailsPage = () => {
           <ActivityFeed type="task" taskId={parseInt(id)} limit={10} />
         </div>
       </div>
+
+      {/* Edit Task Modal */}
+      {isEditModalOpen && (
+        <TaskForm
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            handleTaskUpdated();
+          }}
+          task={task}
+          mode="edit"
+        />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+        title="Delete Task"
+        message={`Are you sure you want to delete "${task.title}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        loading={isDeleting}
+      />
     </Layout>
   );
 };
