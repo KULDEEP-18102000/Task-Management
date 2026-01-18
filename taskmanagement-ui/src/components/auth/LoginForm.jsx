@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -7,12 +7,13 @@ import { loginUser } from '../../store/slices/authSlice';
 import { loginSchema } from '../../utils/validationSchemas';
 import Input from '../common/Input';
 import Button from '../common/Button';
-import { LogIn } from 'lucide-react';
+import { LogIn, Eye, EyeOff } from 'lucide-react';
 
 const LoginForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading } = useSelector((state) => state.auth);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -76,17 +77,31 @@ const LoginForm = () => {
               Password
               <span className="text-red-500 ml-1">*</span>
             </label>
-            <input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              {...register('password')}
-              className={`
-                w-full px-4 py-2 border rounded-lg outline-none
-                focus:ring-2 focus:ring-primary-500 focus:border-primary-500
-                ${errors.password ? 'border-red-500' : 'border-gray-300'}
-              `}
-            />
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                {...register('password')}
+                className={`
+                  w-full px-4 py-2 pr-12 border rounded-lg outline-none
+                  focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+                  ${errors.password ? 'border-red-500' : 'border-gray-300'}
+                `}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff size={20} />
+                ) : (
+                  <Eye size={20} />
+                )}
+              </button>
+            </div>
             {errors.password && (
               <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
             )}

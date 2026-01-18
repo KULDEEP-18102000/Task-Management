@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -6,12 +6,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { registerUser } from '../../store/slices/authSlice';
 import { registerSchema } from '../../utils/validationSchemas';
 import Button from '../common/Button';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, Eye, EyeOff } from 'lucide-react';
 
 const RegisterForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading } = useSelector((state) => state.auth);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     register,
@@ -120,17 +122,31 @@ const RegisterForm = () => {
               Password
               <span className="text-red-500 ml-1">*</span>
             </label>
-            <input
-              id="password"
-              type="password"
-              placeholder="Enter password"
-              {...register('password')}
-              className={`
-                w-full px-4 py-2 border rounded-lg outline-none
-                focus:ring-2 focus:ring-primary-500 focus:border-primary-500
-                ${errors.password ? 'border-red-500' : 'border-gray-300'}
-              `}
-            />
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter password"
+                {...register('password')}
+                className={`
+                  w-full px-4 py-2 pr-12 border rounded-lg outline-none
+                  focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+                  ${errors.password ? 'border-red-500' : 'border-gray-300'}
+                `}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff size={20} />
+                ) : (
+                  <Eye size={20} />
+                )}
+              </button>
+            </div>
             {errors.password && (
               <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
             )}
@@ -141,17 +157,31 @@ const RegisterForm = () => {
               Confirm Password
               <span className="text-red-500 ml-1">*</span>
             </label>
-            <input
-              id="confirmPassword"
-              type="password"
-              placeholder="Confirm password"
-              {...register('confirmPassword')}
-              className={`
-                w-full px-4 py-2 border rounded-lg outline-none
-                focus:ring-2 focus:ring-primary-500 focus:border-primary-500
-                ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'}
-              `}
-            />
+            <div className="relative">
+              <input
+                id="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Confirm password"
+                {...register('confirmPassword')}
+                className={`
+                  w-full px-4 py-2 pr-12 border rounded-lg outline-none
+                  focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+                  ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'}
+                `}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+              >
+                {showConfirmPassword ? (
+                  <EyeOff size={20} />
+                ) : (
+                  <Eye size={20} />
+                )}
+              </button>
+            </div>
             {errors.confirmPassword && (
               <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
             )}
