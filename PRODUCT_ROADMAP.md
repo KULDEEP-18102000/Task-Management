@@ -6,7 +6,7 @@ This document tracks all planned enhancements, new features, and technical impro
 
 ## 🔐 Phase 1: Authentication & Security Enhancements
 - [x] **Dual Login Support:** Allow users to log in using either their `username` OR `email`.
-- [ ] **Account Lockout:** Implement logic to lock an account after 5 failed login attempts (demonstrates security awareness).
+- [x] **Account Lockout:** Implement logic to lock an account after 5 failed login attempts (demonstrates security awareness).
 - [ ] **Password Reset Flow:** Implement a secure "Forgot Password" flow with email tokens.
 
 ## 🏗️ Phase 2: Core Task Management (The "JPA Expert" Phase)

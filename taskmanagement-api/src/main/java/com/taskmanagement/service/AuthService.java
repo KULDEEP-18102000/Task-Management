@@ -8,9 +8,13 @@ import com.taskmanagement.entity.User;
 import com.taskmanagement.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -57,15 +61,31 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest request) {
 
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()
-                )
-        );
-
         var user = userRepository.findByUsernameOrEmail(request.getUsername(),request.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if(!user.isAccountNonLocked()){
+            if(user.getLockTime().plusMinutes(30).isBefore(LocalDateTime.now())){
+                user.setAccountNonLocked(true);
+                user.setFailedAttempts(0);
+                userRepository.save(user);
+            }else{
+                throw new RuntimeException("Account is locked due to 5 failed attempts. Please try again after 30 minutes.");
+            }
+        }
+
+        try{
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getUsername(),
+                            request.getPassword()
+                    )
+            );
+            resetFailedAttempts(user);
+        } catch (BadCredentialsException e) {
+            increaseFailedAttempts(user);
+            throw new BadCredentialsException("Invalid username or password");
+        }
 
         var jwtToken = jwtService.generateToken(user);
 
@@ -77,5 +97,25 @@ public class AuthService {
                 .fullName(user.getFullName())
                 .role(user.getRole().name())
                 .build();
+    }
+
+    @Transactional
+    public void increaseFailedAttempts(User user){
+        int newFailedAttempts=user.getFailedAttempts()+1;
+        user.setFailedAttempts(newFailedAttempts);
+
+        if(newFailedAttempts>=5){
+            user.setAccountNonLocked(false);
+            user.setLockTime(LocalDateTime.now());
+        }
+
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void resetFailedAttempts(User user){
+        user.setFailedAttempts(0);
+
+        userRepository.save(user);
     }
 }
