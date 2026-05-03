@@ -1,17 +1,15 @@
 import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useAuth } from '../../hooks/useAuth';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { registerUser } from '../../store/slices/authSlice';
 import { registerSchema } from '../../utils/validationSchemas';
 import Button from '../common/Button';
 import { UserPlus, Eye, EyeOff } from 'lucide-react';
 
 const RegisterForm = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading } = useSelector((state) => state.auth);
+  const { register: registerAuth, loading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -33,10 +31,10 @@ const RegisterForm = () => {
   const onSubmit = async (data) => {
     try {
       const { confirmPassword, ...userData } = data;
-      await dispatch(registerUser(userData)).unwrap();
+      await registerAuth(userData);
       navigate('/dashboard');
     } catch (error) {
-      // Error is handled in the slice
+      console.error('Registration failed:', error);
     }
   };
 
@@ -215,3 +213,4 @@ const RegisterForm = () => {
 };
 
 export default RegisterForm;
+

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { useAuth } from '../hooks/useAuth';
 import { fetchProjectById } from '../store/slices/projectSlice';
 import { fetchTasks } from '../store/slices/taskSlice';
 import taskService from '../services/taskService';
@@ -17,7 +18,7 @@ const ProjectDetailsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
+  const { user } = useAuth();
   const { currentProject, loading } = useSelector((state) => state.projects);
   const { tasks } = useSelector((state) => state.tasks);
   
@@ -211,3 +212,4 @@ const ProjectDetailsPage = () => {
 };
 
 export default ProjectDetailsPage;
+

@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useAuth } from '../hooks/useAuth';
 import RegisterForm from '../components/auth/RegisterForm';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -21,3 +21,4 @@ const RegisterPage = () => {
 };
 
 export default RegisterPage;
+

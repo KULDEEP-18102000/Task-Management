@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
+import { useAuth } from '../hooks/useAuth';
 import { fetchProjects } from '../store/slices/projectSlice';
 import Layout from '../components/layout/Layout';
 import ProjectList from '../components/projects/ProjectList';
@@ -10,7 +11,7 @@ import { USER_ROLES } from '../utils/constants';
 
 const ProjectsPage = () => {
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
+  const { user } = useAuth();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const canCreateProject = user?.role === USER_ROLES.ADMIN || user?.role === USER_ROLES.MANAGER;
@@ -63,3 +64,4 @@ const ProjectsPage = () => {
 };
 
 export default ProjectsPage;
+
