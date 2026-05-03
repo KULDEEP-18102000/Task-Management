@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { logout } from '../../store/slices/authSlice';
+import { useAuth } from '../../hooks/useAuth';
 import { LogOut, CheckSquare, FolderOpen, LayoutDashboard, Menu, X } from 'lucide-react';
 import Button from '../common/Button';
 import NotificationBell from '../notifications/NotificationBell';  // NEW
@@ -9,14 +8,13 @@ import { getInitials } from '../../utils/helpers';
 import { USER_ROLES } from '../../utils/constants';
 
 const Navbar = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useSelector((state) => state.auth);
+  const { user, logout: logoutAuth } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
-    dispatch(logout());
+    logoutAuth();
     navigate('/login');
   };
 
@@ -170,3 +168,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+

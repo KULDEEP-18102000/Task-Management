@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
+import { useAuth } from '../hooks/useAuth';
 import { ArrowLeft, Calendar, Flag, User, Edit2, Trash2 } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import CommentList from '../components/comments/CommentList';
@@ -24,7 +25,7 @@ const TaskDetailsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
+  const { user } = useAuth();
   const [task, setTask] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -239,3 +240,4 @@ const TaskDetailsPage = () => {
 };
 
 export default TaskDetailsPage;
+

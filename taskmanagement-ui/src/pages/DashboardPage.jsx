@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useAuth } from '../hooks/useAuth';
 import { Link } from 'react-router-dom';
 import { fetchTasks } from '../store/slices/taskSlice';
 import { fetchProjects } from '../store/slices/projectSlice';
@@ -12,7 +13,7 @@ import { Plus, FolderOpen, CheckSquare, Clock } from 'lucide-react';
 
 const DashboardPage = () => {
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
+  const { user } = useAuth();
   const { tasks } = useSelector((state) => state.tasks);
   const { projects } = useSelector((state) => state.projects);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -144,3 +145,4 @@ const DashboardPage = () => {
 };
 
 export default DashboardPage;
+

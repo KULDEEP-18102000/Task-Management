@@ -1,18 +1,16 @@
 import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useAuth } from '../../hooks/useAuth';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { loginUser } from '../../store/slices/authSlice';
 import { loginSchema } from '../../utils/validationSchemas';
 import Input from '../common/Input';
 import Button from '../common/Button';
 import { LogIn, Eye, EyeOff } from 'lucide-react';
 
 const LoginForm = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading } = useSelector((state) => state.auth);
+  const { login, loading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
 
   const {
@@ -29,10 +27,9 @@ const LoginForm = () => {
 
   const onSubmit = async (data) => {
     try {
-      await dispatch(loginUser(data)).unwrap();
+      await login(data);
       navigate('/dashboard');
     } catch (error) {
-      // Error is handled in the slice
       console.error('Login failed:', error);
     }
   };
@@ -135,3 +132,4 @@ const LoginForm = () => {
 };
 
 export default LoginForm;
+

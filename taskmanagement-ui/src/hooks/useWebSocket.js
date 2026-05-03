@@ -1,5 +1,6 @@
 import { useEffect, useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
+import { useAuth } from './useAuth';
 import websocketService from '../services/websocketService';
 import { addNotification, fetchUnreadCount } from '../store/slices/notificationSlice';
 import { fetchTasks } from '../store/slices/taskSlice';
@@ -7,7 +8,7 @@ import toast from 'react-hot-toast';
 
 export const useWebSocket = () => {
   const dispatch = useDispatch();
-  const { token, user } = useSelector((state) => state.auth);
+  const { token, user } = useAuth();
 
   const connect = useCallback(() => {
     if (!token || !user) return;
@@ -92,3 +93,4 @@ export const useWebSocket = () => {
     subscribeToTaskComments,
   };
 };
+
