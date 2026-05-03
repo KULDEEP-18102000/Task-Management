@@ -53,13 +53,13 @@ const LoginForm = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
-              Username
+              Username or Email
               <span className="text-red-500 ml-1">*</span>
             </label>
             <input
               id="username"
               type="text"
-              placeholder="Enter your username"
+              placeholder="Enter your username or email"
               {...register('username')}
               className={`
                 w-full px-4 py-2 border rounded-lg outline-none

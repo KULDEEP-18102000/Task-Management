@@ -56,6 +56,7 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
+
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsername(),
@@ -63,7 +64,7 @@ public class AuthService {
                 )
         );
 
-        var user = userRepository.findByUsername(request.getUsername())
+        var user = userRepository.findByUsernameOrEmail(request.getUsername(),request.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         var jwtToken = jwtService.generateToken(user);
