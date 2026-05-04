@@ -88,6 +88,12 @@
 			<artifactId>spring-boot-starter-websocket</artifactId>
 		</dependency>
 
+		<!-- Email -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+
 		<!-- For JSON messaging -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.datatype</groupId>

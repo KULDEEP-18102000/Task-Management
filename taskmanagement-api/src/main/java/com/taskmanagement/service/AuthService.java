@@ -5,7 +5,9 @@ import com.taskmanagement.dto.request.RegisterRequest;
 import com.taskmanagement.dto.response.AuthResponse;
 import com.taskmanagement.entity.Role;
 import com.taskmanagement.entity.User;
+import com.taskmanagement.entity.PasswordResetToken;
 import com.taskmanagement.repository.UserRepository;
+import com.taskmanagement.repository.PasswordResetTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -15,15 +17,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final EmailService emailService;
 
     public AuthResponse register(RegisterRequest request) {
         // Check if username already exists
@@ -117,5 +122,50 @@ public class AuthService {
         user.setFailedAttempts(0);
 
         userRepository.save(user);
+    }
+
+    @Transactional
+    public void forgotPassword(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+        System.out.println("user------->"+user);
+        // Clean up any old tokens
+        passwordResetTokenRepository.deleteByUser(user);
+        // Create new token (valid for 15 minutes)
+        String token = UUID.randomUUID().toString();
+        System.out.println("token------->"+token);
+        PasswordResetToken resetToken = PasswordResetToken.builder()
+                .token(token)
+                .user(user)
+                .expiryDateTime(LocalDateTime.now().plusMinutes(15))
+                .build();
+        System.out.println("resetToken------->"+resetToken);
+        passwordResetTokenRepository.save(resetToken);
+        // MOCK EMAIL: In a real app, we would send an email here.
+        // For now, we log the link to the console so you can copy it for testing.
+        String resetLink = "http://localhost:5173/reset-password?token=" + token;
+        System.out.println("DEBUG: Password Reset Link: " + resetLink);
+
+        emailService.sendEmail(
+                user.getEmail(),
+                "Password Reset Request",
+                "Click the link to reset your password: " + resetLink
+        );
+    }
+
+    @Transactional
+    public void resetPassword(String token, String newPassword) {
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Invalid or expired password reset token"));
+        if (resetToken.isExpired()) {
+            passwordResetTokenRepository.delete(resetToken);
+            throw new RuntimeException("Token has expired. Please request a new one.");
+        }
+        // Update user password
+        User user = resetToken.getUser();
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        // Delete token after successful use
+        passwordResetTokenRepository.delete(resetToken);
     }
 }
