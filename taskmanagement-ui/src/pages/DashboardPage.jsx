@@ -1,27 +1,33 @@
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import projectService from '../services/projectService';
+import taskService from '../services/taskService';
 import { useAuth } from '../hooks/useAuth';
 import { Link } from 'react-router-dom';
-import { fetchTasks } from '../store/slices/taskSlice';
-import { fetchProjects } from '../store/slices/projectSlice';
 import Layout from '../components/layout/Layout';
 import TaskFilters from '../components/tasks/TaskFilters';
 import TaskList from '../components/tasks/TaskList';
 import TaskForm from '../components/tasks/TaskForm';
 import Button from '../components/common/Button';
+import Loader from '../components/common/Loader';
 import { Plus, FolderOpen, CheckSquare, Clock } from 'lucide-react';
 
 const DashboardPage = () => {
-  const dispatch = useDispatch();
   const { user } = useAuth();
-  const { tasks } = useSelector((state) => state.tasks);
-  const { projects } = useSelector((state) => state.projects);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [filter, setFilter] = useState('ALL');
 
-  useEffect(() => {
-    dispatch(fetchTasks());
-    dispatch(fetchProjects());
-  }, [dispatch]);
+  // Fetch Tasks
+  const { data: tasks = [], isLoading: loadingTasks } = useQuery({
+    queryKey: ['tasks'],
+    queryFn: () => taskService.getAllTasks(),
+  });
+
+  // Fetch Projects
+  const { data: projects = [], isLoading: loadingProjects } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => projectService.getAllProjects(),
+  });
 
   // Calculate stats
   const totalTasks = tasks.length;
@@ -30,6 +36,14 @@ const DashboardPage = () => {
   const overdueTasks = tasks.filter(t => 
     t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'COMPLETED'
   ).length;
+
+  if (loadingTasks || loadingProjects) {
+    return (
+      <Layout>
+        <Loader fullScreen />
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -121,7 +135,7 @@ const DashboardPage = () => {
 
       {/* Actions Bar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <TaskFilters />
+        <TaskFilters currentFilter={filter} onFilterChange={setFilter} tasks={tasks} />
         <Button
           onClick={() => setIsCreateModalOpen(true)}
           className="w-full sm:w-auto"
@@ -132,7 +146,7 @@ const DashboardPage = () => {
       </div>
 
       {/* Task List */}
-      <TaskList />
+      <TaskList filter={filter} tasks={tasks} />
 
       {/* Create Task Modal */}
       <TaskForm

@@ -1,19 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { createTask, updateTask } from '../../store/slices/taskSlice';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import projectService from '../../services/projectService';
 import userService from '../../services/userService';
+import taskService from '../../services/taskService';
 import Modal from '../common/Modal';
 import Input from '../common/Input';
 import Button from '../common/Button';
+import toast from 'react-hot-toast';
 import { TASK_STATUS, TASK_STATUS_LABELS, TASK_PRIORITY, TASK_PRIORITY_LABELS } from '../../utils/constants';
 
 const TaskForm = ({ isOpen, onClose, task = null, mode = 'create', projectId = null }) => {
-  const dispatch = useDispatch();
-  const [loading, setLoading] = useState(false);
-  const [projects, setProjects] = useState([]);
-  const [teamMembers, setTeamMembers] = useState([]);
-  const [loadingData, setLoadingData] = useState(false);
+  const queryClient = useQueryClient();
   
   const [formData, setFormData] = useState({
     title: '',
@@ -27,28 +24,49 @@ const TaskForm = ({ isOpen, onClose, task = null, mode = 'create', projectId = n
 
   const [errors, setErrors] = useState({});
 
-  // Fetch projects and team members
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoadingData(true);
-      try {
-        const [projectsData, membersData] = await Promise.all([
-          projectService.getAllProjects(),
-          userService.getTeamMembers(),
-        ]);
-        setProjects(projectsData);
-        setTeamMembers(membersData);
-      } catch (error) {
-        console.error('Failed to fetch data:', error);
-      } finally {
-        setLoadingData(false);
-      }
-    };
+  // Fetch projects and team members using useQuery
+  const { data: projects = [], isLoading: loadingProjects } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => projectService.getAllProjects(),
+    enabled: isOpen,
+  });
 
-    if (isOpen) {
-      fetchData();
-    }
-  }, [isOpen]);
+  const { data: teamMembers = [], isLoading: loadingMembers } = useQuery({
+    queryKey: ['users', 'team-members'],
+    queryFn: () => userService.getTeamMembers(),
+    enabled: isOpen,
+  });
+
+  // Create Task Mutation
+  const createMutation = useMutation({
+    mutationFn: (taskData) => taskService.createTask(taskData),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['projects']);
+      queryClient.invalidateQueries(['tasks']);
+      queryClient.invalidateQueries(['dashboard']);
+      toast.success('Task created successfully');
+      handleClose();
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to create task');
+    },
+  });
+
+  // Update Task Mutation
+  const updateMutation = useMutation({
+    mutationFn: ({ id, taskData }) => taskService.updateTask(id, taskData),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(['projects']);
+      queryClient.invalidateQueries(['tasks', task?.id.toString()]);
+      queryClient.invalidateQueries(['tasks']);
+      queryClient.invalidateQueries(['dashboard']);
+      toast.success('Task updated successfully');
+      handleClose();
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to update task');
+    },
+  });
 
   // Populate form if editing
   useEffect(() => {
@@ -94,10 +112,7 @@ const TaskForm = ({ isOpen, onClose, task = null, mode = 'create', projectId = n
     e.preventDefault();
     
     if (!validate()) return;
-
-    setLoading(true);
     
-    // Prepare task data
     const taskData = {
       title: formData.title,
       description: formData.description,
@@ -108,17 +123,10 @@ const TaskForm = ({ isOpen, onClose, task = null, mode = 'create', projectId = n
       assignedToId: formData.assignedToId ? parseInt(formData.assignedToId) : null,
     };
 
-    try {
-      if (mode === 'create') {
-        await dispatch(createTask(taskData)).unwrap();
-      } else {
-        await dispatch(updateTask({ id: task.id, taskData })).unwrap();
-      }
-      handleClose();
-    } catch (error) {
-      // Error handled in slice
-    } finally {
-      setLoading(false);
+    if (mode === 'create') {
+      createMutation.mutate(taskData);
+    } else {
+      updateMutation.mutate({ id: task.id, taskData });
     }
   };
 
@@ -135,6 +143,9 @@ const TaskForm = ({ isOpen, onClose, task = null, mode = 'create', projectId = n
     setErrors({});
     onClose();
   };
+
+  const loadingData = loadingProjects || loadingMembers;
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
   return (
     <Modal
@@ -269,7 +280,7 @@ const TaskForm = ({ isOpen, onClose, task = null, mode = 'create', projectId = n
           </Button>
           <Button
             type="submit"
-            loading={loading}
+            loading={isPending}
             fullWidth
           >
             {mode === 'create' ? 'Create Task' : 'Update Task'}

@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useState } from 'react';
+
 import { useAuth } from '../hooks/useAuth';
-import { fetchProjects } from '../store/slices/projectSlice';
+
 import Layout from '../components/layout/Layout';
 import ProjectList from '../components/projects/ProjectList';
 import ProjectForm from '../components/projects/ProjectForm';
@@ -10,15 +10,10 @@ import { Plus } from 'lucide-react';
 import { USER_ROLES } from '../utils/constants';
 
 const ProjectsPage = () => {
-  const dispatch = useDispatch();
   const { user } = useAuth();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const canCreateProject = user?.role === USER_ROLES.ADMIN || user?.role === USER_ROLES.MANAGER;
-
-  useEffect(() => {
-    dispatch(fetchProjects());
-  }, [dispatch]);
 
   return (
     <Layout>

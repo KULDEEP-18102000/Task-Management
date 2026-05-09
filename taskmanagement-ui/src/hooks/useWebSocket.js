@@ -1,13 +1,11 @@
 import { useEffect, useCallback } from 'react';
-import { useDispatch } from 'react-redux';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './useAuth';
 import websocketService from '../services/websocketService';
-import { addNotification, fetchUnreadCount } from '../store/slices/notificationSlice';
-import { fetchTasks } from '../store/slices/taskSlice';
 import toast from 'react-hot-toast';
 
 export const useWebSocket = () => {
-  const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const { token, user } = useAuth();
 
   const connect = useCallback(() => {
@@ -23,8 +21,8 @@ export const useWebSocket = () => {
           `/topic/user/${user.id}/notifications`,
           (notification) => {
             console.log('Received notification:', notification);
-            dispatch(addNotification(notification));
-            dispatch(fetchUnreadCount());
+            // Invalidate notifications to trigger a fresh fetch
+            queryClient.invalidateQueries(['notifications']);
             
             // Show toast notification
             toast.success(notification.title, {
@@ -39,7 +37,8 @@ export const useWebSocket = () => {
           
           // Refresh tasks on any update
           if (message.type === 'CREATED' || message.type === 'UPDATED' || message.type === 'DELETED') {
-            dispatch(fetchTasks());
+            queryClient.invalidateQueries(['tasks']);
+            queryClient.invalidateQueries(['dashboard']);
           }
         });
       },
@@ -47,7 +46,7 @@ export const useWebSocket = () => {
         console.error('WebSocket connection error:', error);
       }
     );
-  }, [token, user, dispatch]);
+  }, [token, user, queryClient]);
 
   const disconnect = useCallback(() => {
     websocketService.disconnect();
@@ -60,10 +59,11 @@ export const useWebSocket = () => {
       `/topic/project/${projectId}/tasks`,
       (message) => {
         console.log('Project task update:', message);
-        dispatch(fetchTasks());
+        queryClient.invalidateQueries(['tasks']);
+        queryClient.invalidateQueries(['projects']);
       }
     );
-  }, [dispatch]);
+  }, [queryClient]);
 
   const subscribeToTaskComments = useCallback((taskId, onComment) => {
     if (!websocketService.isConnected()) return;

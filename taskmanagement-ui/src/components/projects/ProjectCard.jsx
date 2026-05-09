@@ -1,30 +1,39 @@
 import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { deleteProject } from '../../store/slices/projectSlice';
+import projectService from '../../services/projectService';
 import { Folder, Users, CheckSquare, Edit2, Trash2, MoreVertical } from 'lucide-react';
 import { formatDate } from '../../utils/helpers';
 import { USER_ROLES } from '../../utils/constants';
+import toast from 'react-hot-toast';
 
 const ProjectCard = ({ project }) => {
-  const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { user } = useSelector((state) => state.auth);
+  const { user } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
-  const isOwner = project.owner.id === user?.id;
+  const isOwner = project.owner?.id === user?.id;
   const isAdmin = user?.role === USER_ROLES.ADMIN;
   const canEdit = isOwner || isAdmin;
 
-  const handleDelete = async () => {
+  // Delete Project Mutation
+  const deleteMutation = useMutation({
+    mutationFn: () => projectService.deleteProject(project.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['projects']);
+      queryClient.invalidateQueries(['dashboard']);
+      toast.success('Project deleted successfully');
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to delete project');
+    },
+  });
+
+  const handleDelete = () => {
     if (window.confirm('Are you sure you want to delete this project? All associated tasks will be affected.')) {
-      setIsDeleting(true);
-      try {
-        await dispatch(deleteProject(project.id)).unwrap();
-      } catch (error) {
-        setIsDeleting(false);
-      }
+      deleteMutation.mutate();
     }
   };
 
@@ -81,7 +90,7 @@ const ProjectCard = ({ project }) => {
                 </button>
                 <button
                   onClick={handleDelete}
-                  disabled={isDeleting}
+                  disabled={deleteMutation.isPending}
                   className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Trash2 size={16} />

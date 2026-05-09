@@ -1,5 +1,5 @@
 import React from 'react';
-import { useDispatch } from 'react-redux';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { 
   Bell, 
@@ -9,13 +9,21 @@ import {
   Clock, 
   AlertCircle 
 } from 'lucide-react';
-import { markAsRead } from '../../store/slices/notificationSlice';
+import notificationService from '../../services/notificationService';
 import { formatDateTime } from '../../utils/helpers';
 import { NOTIFICATION_TYPES } from '../../utils/constants';
 
 const NotificationItem = ({ notification }) => {
-  const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
+
+  // Mark as read mutation
+  const markReadMutation = useMutation({
+    mutationFn: () => notificationService.markAsRead(notification.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['notifications']);
+    },
+  });
 
   const getNotificationIcon = (type) => {
     const iconProps = { size: 18 };
@@ -41,7 +49,7 @@ const NotificationItem = ({ notification }) => {
   const handleClick = async () => {
     // Mark as read
     if (!notification.isRead) {
-      dispatch(markAsRead(notification.id));
+      markReadMutation.mutate();
     }
 
     // Navigate to relevant page

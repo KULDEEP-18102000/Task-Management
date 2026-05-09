@@ -1,21 +1,13 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
-import { selectFilteredTasks } from '../../store/slices/taskSlice';
 import TaskCard from './TaskCard';
 import Loader from '../common/Loader';
 import { Inbox } from 'lucide-react';
 
-const TaskList = () => {
-  const filteredTasks = useSelector(selectFilteredTasks);
-  const { loading, filter } = useSelector((state) => state.tasks);
+const TaskList = ({ filter = 'ALL', tasks = [] }) => {
+  const filteredTasks = filter === 'ALL' 
+    ? tasks 
+    : tasks.filter(task => task.status === filter);
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center py-12">
-        <Loader size="lg" />
-      </div>
-    );
-  }
+  const isLoading = false; // Loading handled in parent page
 
   if (filteredTasks.length === 0) {
     return (
