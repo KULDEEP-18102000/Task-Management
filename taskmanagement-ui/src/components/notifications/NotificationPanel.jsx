@@ -39,7 +39,7 @@ const NotificationPanel = ({ isOpen, onClose }) => {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-40"
+        className="fixed inset-0 bg-black/30 backdrop-blur-[2px] z-40 transition-all duration-300"
         onClick={onClose}
       />
 
