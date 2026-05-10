@@ -92,6 +92,7 @@ export const API_ENDPOINTS = {
   
   // Users
   USERS: '/users',
+  USERS_MANAGEMENT: '/users/management',
   USER_BY_ID: (id) => `/users/${id}`,
   TEAM_MEMBERS: '/users/team-members',
   UPDATE_USER_ROLE: (id) => `/users/${id}/role`,

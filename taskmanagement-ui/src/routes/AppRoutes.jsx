@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import PrivateRoute from './PrivateRoute';
+import AdminRoute from './AdminRoute';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import ForgotPasswordPage from '../pages/ForgotPasswordPage';
@@ -9,6 +10,7 @@ import DashboardPage from '../pages/DashboardPage';
 import ProjectsPage from '../pages/ProjectsPage';
 import ProjectDetailsPage from '../pages/ProjectDetailsPage';
 import TaskDetailsPage from '../pages/TaskDetailsPage';  // NEW
+import UsersPage from '../pages/UsersPage';
 import NotFoundPage from '../pages/NotFoundPage';
 
 const AppRoutes = () => {
@@ -54,6 +56,15 @@ const AppRoutes = () => {
           <PrivateRoute>
             <TaskDetailsPage />
           </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/users"
+        element={
+          <AdminRoute>
+            <UsersPage />
+          </AdminRoute>
         }
       />
 

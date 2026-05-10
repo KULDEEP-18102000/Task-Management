@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { LogOut, CheckSquare, FolderOpen, LayoutDashboard, Menu, X } from 'lucide-react';
+import { LogOut, CheckSquare, FolderOpen, LayoutDashboard, Menu, X, Users } from 'lucide-react';
 import Button from '../common/Button';
 import NotificationBell from '../notifications/NotificationBell';  // NEW
 import { getInitials } from '../../utils/helpers';
@@ -22,6 +22,11 @@ const Navbar = () => {
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/projects', label: 'Projects', icon: FolderOpen },
   ];
+
+  // Add User Management link only for Admins
+  if (user?.role === USER_ROLES.ADMIN) {
+    navLinks.push({ path: '/users', label: 'Users', icon: Users });
+  }
 
   const isActive = (path) => location.pathname === path;
 
