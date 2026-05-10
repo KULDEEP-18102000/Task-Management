@@ -7,12 +7,14 @@ import { Folder, Users, CheckSquare, Edit2, Trash2, MoreVertical } from 'lucide-
 import { formatDate } from '../../utils/helpers';
 import { USER_ROLES } from '../../utils/constants';
 import toast from 'react-hot-toast';
+import ConfirmModal from '../common/ConfirmModal';
 
 const ProjectCard = ({ project }) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const isOwner = project.owner?.id === user?.id;
   const isAdmin = user?.role === USER_ROLES.ADMIN;
@@ -25,16 +27,21 @@ const ProjectCard = ({ project }) => {
       queryClient.invalidateQueries(['projects']);
       queryClient.invalidateQueries(['dashboard']);
       toast.success('Project deleted successfully');
+      setIsDeleteModalOpen(false);
     },
     onError: (error) => {
       toast.error(error.response?.data?.message || 'Failed to delete project');
+      setIsDeleteModalOpen(false);
     },
   });
 
   const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this project? All associated tasks will be affected.')) {
-      deleteMutation.mutate();
-    }
+    setIsDeleteModalOpen(true);
+    setShowMenu(false);
+  };
+
+  const confirmDelete = () => {
+    deleteMutation.mutate();
   };
 
   const handleViewProject = () => {
@@ -80,7 +87,7 @@ const ProjectCard = ({ project }) => {
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
                 <button
                   onClick={() => {
-                    navigate(`/projects/${project.id}/edit`);
+                    navigate(`/projects/${project.id}`);
                     setShowMenu(false);
                   }}
                   className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
@@ -133,6 +140,19 @@ const ProjectCard = ({ project }) => {
           View Details →
         </button>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Delete Project"
+        message={`Are you sure you want to delete "${project.name}"? This action cannot be undone and all associated tasks will be removed.`}
+        confirmText="Delete Project"
+        cancelText="Cancel"
+        variant="danger"
+        loading={deleteMutation.isPending}
+      />
     </div>
   );
 };
