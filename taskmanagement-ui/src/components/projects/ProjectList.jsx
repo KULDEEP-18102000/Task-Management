@@ -1,13 +1,17 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
+import { useQuery } from '@tanstack/react-query';
+import projectService from '../../services/projectService';
 import ProjectCard from './ProjectCard';
 import Loader from '../common/Loader';
 import { FolderOpen } from 'lucide-react';
 
 const ProjectList = () => {
-  const { projects, loading } = useSelector((state) => state.projects);
+  const { data: projects = [], isLoading } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => projectService.getAllProjects(),
+  });
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center py-12">
         <Loader size="lg" />

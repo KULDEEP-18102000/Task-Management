@@ -1,32 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, Bell, CheckCheck } from 'lucide-react';
 import NotificationItem from './NotificationItem';
 import Button from '../common/Button';
 import Loader from '../common/Loader';
-import { 
-  fetchNotifications, 
-  fetchUnreadNotifications,
-  markAllAsRead 
-} from '../../store/slices/notificationSlice';
+import notificationService from '../../services/notificationService';
+import toast from 'react-hot-toast';
 
 const NotificationPanel = ({ isOpen, onClose }) => {
-  const dispatch = useDispatch();
-  const { notifications, loading } = useSelector((state) => state.notifications);
+  const queryClient = useQueryClient();
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) {
-      if (showUnreadOnly) {
-        dispatch(fetchUnreadNotifications());
-      } else {
-        dispatch(fetchNotifications());
-      }
-    }
-  }, [isOpen, showUnreadOnly, dispatch]);
+  // Fetch Notifications
+  const { data: notifications = [], isLoading: loading } = useQuery({
+    queryKey: ['notifications', { unreadOnly: showUnreadOnly }],
+    queryFn: () => showUnreadOnly 
+      ? notificationService.getUnreadNotifications() 
+      : notificationService.getAllNotifications(),
+    enabled: isOpen,
+  });
+
+  // Mark all as read mutation
+  const markAllReadMutation = useMutation({
+    mutationFn: () => notificationService.markAllAsRead(),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['notifications']);
+      toast.success('All marked as read');
+    },
+  });
 
   const handleMarkAllRead = () => {
-    dispatch(markAllAsRead());
+    markAllReadMutation.mutate();
   };
 
   if (!isOpen) return null;
@@ -35,7 +39,7 @@ const NotificationPanel = ({ isOpen, onClose }) => {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-40"
+        className="fixed inset-0 bg-black/30 backdrop-blur-[2px] z-40 transition-all duration-300"
         onClick={onClose}
       />
 

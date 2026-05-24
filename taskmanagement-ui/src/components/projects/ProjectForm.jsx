@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { createProject, updateProject } from '../../store/slices/projectSlice';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import projectService from '../../services/projectService';
 import userService from '../../services/userService';
 import Modal from '../common/Modal';
 import Input from '../common/Input';
 import Button from '../common/Button';
+import toast from 'react-hot-toast';
 
 const ProjectForm = ({ isOpen, onClose, project = null, mode = 'create' }) => {
-  const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
-  const [loading, setLoading] = useState(false);
-  const [teamMembers, setTeamMembers] = useState([]);
-  const [loadingMembers, setLoadingMembers] = useState(false);
-
+  const queryClient = useQueryClient();
+  
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -22,24 +19,39 @@ const ProjectForm = ({ isOpen, onClose, project = null, mode = 'create' }) => {
 
   const [errors, setErrors] = useState({});
 
-  // Fetch team members for selection
-  useEffect(() => {
-    const fetchTeamMembers = async () => {
-      setLoadingMembers(true);
-      try {
-        const data = await userService.getTeamMembers();
-        setTeamMembers(data);
-      } catch (error) {
-        console.error('Failed to fetch team members:', error);
-      } finally {
-        setLoadingMembers(false);
-      }
-    };
+  // Fetch team members using useQuery
+  const { data: teamMembers = [], isLoading: loadingMembers } = useQuery({
+    queryKey: ['users', 'team-members'],
+    queryFn: () => userService.getTeamMembers(),
+    enabled: isOpen,
+  });
 
-    if (isOpen) {
-      fetchTeamMembers();
-    }
-  }, [isOpen]);
+  // Create Project Mutation
+  const createMutation = useMutation({
+    mutationFn: (projectData) => projectService.createProject(projectData),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['projects']);
+      toast.success('Project created successfully!');
+      handleClose();
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to create project');
+    },
+  });
+
+  // Update Project Mutation
+  const updateMutation = useMutation({
+    mutationFn: ({ id, projectData }) => projectService.updateProject(id, projectData),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['projects']);
+      queryClient.invalidateQueries(['projects', project?.id.toString()]);
+      toast.success('Project updated successfully!');
+      handleClose();
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to update project');
+    },
+  });
 
   // Populate form if editing
   useEffect(() => {
@@ -51,7 +63,6 @@ const ProjectForm = ({ isOpen, onClose, project = null, mode = 'create' }) => {
         memberIds: project.members?.map(m => m.id) || [],
       });
     } else if (isOpen && mode === 'create') {
-      // Reset form for create mode
       setFormData({
         name: '',
         description: '',
@@ -99,26 +110,16 @@ const ProjectForm = ({ isOpen, onClose, project = null, mode = 'create' }) => {
     e.preventDefault();
 
     if (!validate()) return;
-
-    setLoading(true);
     
-    // Prepare project data with proper types
     const projectData = {
       ...formData,
       managerId: formData.managerId ? parseInt(formData.managerId) : null,
     };
     
-    try {
-      if (mode === 'create') {
-        await dispatch(createProject(projectData)).unwrap();
-      } else {
-        await dispatch(updateProject({ id: project.id, projectData })).unwrap();
-      }
-      handleClose();
-    } catch (error) {
-      // Error handled in slice
-    } finally {
-      setLoading(false);
+    if (mode === 'create') {
+      createMutation.mutate(projectData);
+    } else {
+      updateMutation.mutate({ id: project.id, projectData });
     }
   };
 
@@ -132,6 +133,8 @@ const ProjectForm = ({ isOpen, onClose, project = null, mode = 'create' }) => {
     setErrors({});
     onClose();
   };
+
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
   return (
     <Modal
@@ -251,7 +254,7 @@ const ProjectForm = ({ isOpen, onClose, project = null, mode = 'create' }) => {
           </Button>
           <Button
             type="submit"
-            loading={loading}
+            loading={isPending}
             fullWidth
           >
             {mode === 'create' ? 'Create Project' : 'Update Project'}

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { deleteTask, updateTask } from '../../store/slices/taskSlice';
+import taskService from '../../services/taskService';
 import { Edit2, Trash2, Clock, Calendar, User, Flag } from 'lucide-react';
 import Button from '../common/Button';
 import TaskForm from './TaskForm';
@@ -16,12 +17,11 @@ import {
 import { formatDateTime, formatDate } from '../../utils/helpers';
 
 const TaskCard = ({ task }) => {
-  const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { user } = useSelector((state) => state.auth);
+  const { user } = useAuth();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   // Permission checks
   const isAdmin = user?.role === USER_ROLES.ADMIN;
@@ -29,34 +29,38 @@ const TaskCard = ({ task }) => {
   const isProjectOwner = task.project?.owner?.id === user?.id;
   const canDelete = isAdmin || isTaskCreator || isProjectOwner;
 
-  const handleDelete = async () => {
-    setIsDeleting(true);
-    try {
-      await dispatch(deleteTask(task.id)).unwrap();
+  // Delete Task Mutation
+  const deleteMutation = useMutation({
+    mutationFn: () => taskService.deleteTask(task.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['tasks']);
+      queryClient.invalidateQueries(['projects']);
+      queryClient.invalidateQueries(['dashboard']);
       setIsDeleteModalOpen(false);
-    } catch (error) {
-      setIsDeleting(false);
-    }
+    },
+  });
+
+  // Update Status Mutation
+  const updateStatusMutation = useMutation({
+    mutationFn: (newStatus) => taskService.updateTask(task.id, {
+      ...task,
+      status: newStatus,
+      projectId: task.project?.id,
+      assignedToId: task.assignedTo?.id,
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['tasks']);
+      queryClient.invalidateQueries(['projects']);
+      queryClient.invalidateQueries(['dashboard']);
+    },
+  });
+
+  const handleDelete = () => {
+    deleteMutation.mutate();
   };
 
-  const handleStatusChange = async (e) => {
-    const newStatus = e.target.value;
-    try {
-      await dispatch(updateTask({
-        id: task.id,
-        taskData: { 
-          title: task.title,
-          description: task.description,
-          status: newStatus,
-          priority: task.priority,
-          dueDate: task.dueDate,
-          projectId: task.project?.id,
-          assignedToId: task.assignedTo?.id,
-        }
-      })).unwrap();
-    } catch (error) {
-      // Error handled in slice
-    }
+  const handleStatusChange = (e) => {
+    updateStatusMutation.mutate(e.target.value);
   };
 
   const isPastDue = task.dueDate && new Date(task.dueDate) < new Date();
@@ -90,7 +94,7 @@ const TaskCard = ({ task }) => {
             {canDelete && (
               <button
                 onClick={() => setIsDeleteModalOpen(true)}
-                disabled={isDeleting}
+                disabled={deleteMutation.isPending}
                 className="text-gray-400 hover:text-red-600 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Delete task"
               >
@@ -179,7 +183,7 @@ const TaskCard = ({ task }) => {
         confirmText="Delete"
         cancelText="Cancel"
         variant="danger"
-        loading={isDeleting}
+        loading={deleteMutation.isPending}
       />
     </>
   );

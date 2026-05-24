@@ -1,12 +1,6 @@
-import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { setFilter } from '../../store/slices/taskSlice';
 import { TASK_STATUS, TASK_STATUS_LABELS } from '../../utils/constants';
 
-const TaskFilters = () => {
-  const dispatch = useDispatch();
-  const { filter, tasks } = useSelector((state) => state.tasks);
-
+const TaskFilters = ({ currentFilter, onFilterChange, tasks = [] }) => {
   const getCount = (status) => {
     if (status === 'ALL') return tasks.length;
     return tasks.filter((task) => task.status === status).length;
@@ -24,10 +18,10 @@ const TaskFilters = () => {
       {filters.map((item) => (
         <button
           key={item.value}
-          onClick={() => dispatch(setFilter(item.value))}
+          onClick={() => onFilterChange(item.value)}
           className={`
             px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer
-            ${filter === item.value
+            ${currentFilter === item.value
               ? 'bg-primary-600 text-white'
               : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
             }

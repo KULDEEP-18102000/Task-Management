@@ -2,9 +2,9 @@ import api from '../api/axios';
 import { API_ENDPOINTS } from '../utils/constants';
 
 class UserService {
-  // Get all users
-  async getAllUsers() {
-    const response = await api.get(API_ENDPOINTS.USERS);
+  // Get all users for admin management
+  async getAllUsersForManagement() {
+    const response = await api.get(API_ENDPOINTS.USERS_MANAGEMENT);
     return response.data;
   }
 
@@ -22,7 +22,7 @@ class UserService {
 
   // Update user role (Admin only)
   async updateUserRole(id, role) {
-    const response = await api.put(API_ENDPOINTS.UPDATE_USER_ROLE(id), { role });
+    const response = await api.patch(API_ENDPOINTS.UPDATE_USER_ROLE(id), { role });
     return response.data;
   }
 }

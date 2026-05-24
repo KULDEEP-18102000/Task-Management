@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { MessageSquare } from 'lucide-react';
 import CommentItem from './CommentItem';
 import CommentForm from './CommentForm';
@@ -7,16 +8,25 @@ import commentService from '../../services/commentService';
 import { useWebSocket } from '../../hooks/useWebSocket';
 
 const CommentList = ({ taskId }) => {
-  const [comments, setComments] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const { subscribeToTaskComments } = useWebSocket();
 
-  useEffect(() => {
-    fetchComments();
+  // Fetch Comments
+  const { data: comments = [], isLoading: loading } = useQuery({
+    queryKey: ['comments', taskId],
+    queryFn: () => commentService.getTaskComments(taskId),
+    enabled: !!taskId,
+  });
 
+  useEffect(() => {
     // Subscribe to real-time comments
     const subscription = subscribeToTaskComments(taskId, (newComment) => {
-      setComments((prev) => [newComment, ...prev]);
+      // Update cache manually for real-time feel
+      queryClient.setQueryData(['comments', taskId], (oldComments = []) => {
+        // Prevent duplicate comments (if socket and optimistic update both fire)
+        if (oldComments.some(c => c.id === newComment.id)) return oldComments;
+        return [newComment, ...oldComments];
+      });
     });
 
     return () => {
@@ -24,26 +34,17 @@ const CommentList = ({ taskId }) => {
         subscription.unsubscribe();
       }
     };
-  }, [taskId, subscribeToTaskComments]);
-
-  const fetchComments = async () => {
-    setLoading(true);
-    try {
-      const data = await commentService.getTaskComments(taskId);
-      setComments(data);
-    } catch (error) {
-      console.error('Failed to fetch comments:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [taskId, subscribeToTaskComments, queryClient]);
 
   const handleCommentAdded = (newComment) => {
-    setComments((prev) => [newComment, ...prev]);
+    // The socket will usually handle this, but we can do it here too if needed
+    queryClient.setQueryData(['comments', taskId], (old = []) => [newComment, ...old]);
   };
 
   const handleCommentDeleted = (commentId) => {
-    setComments((prev) => prev.filter(c => c.id !== commentId));
+    queryClient.setQueryData(['comments', taskId], (old = []) => 
+      old.filter(c => c.id !== commentId)
+    );
   };
 
   if (loading) {

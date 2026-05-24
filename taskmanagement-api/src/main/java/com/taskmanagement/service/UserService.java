@@ -1,6 +1,7 @@
 package com.taskmanagement.service;
 
 import com.taskmanagement.dto.response.ProjectResponse;
+import com.taskmanagement.dto.response.UserResponse;
 import com.taskmanagement.entity.Role;
 import com.taskmanagement.entity.User;
 import com.taskmanagement.exception.ResourceNotFoundException;
@@ -20,7 +21,7 @@ public class UserService {
     private final UserRepository userRepository;
     
     @Transactional(readOnly = true)
-    public List<ProjectResponse.UserSummary> getAllUsers(User currentUser) {
+    public List<ProjectResponse.UserSummary> getAvailableUsers(User currentUser) {
         // Only Admins and Managers can view all users
         if (currentUser.getRole() == Role.USER) {
             throw new UnauthorizedException("You don't have permission to view all users");
@@ -46,26 +47,31 @@ public class UserService {
         
         return mapToUserSummary(user);
     }
-    
+
     @Transactional
-    public ProjectResponse.UserSummary updateUserRole(Long id, Role newRole, User currentUser) {
-        // Only Admins can change roles
-        if (currentUser.getRole() != Role.ADMIN) {
-            throw new UnauthorizedException("Only Admins can change user roles");
-        }
-        
+    public List<UserResponse> getAllUsersForAdmin(){
+        return userRepository.findAll()
+                .stream()
+                .map(user -> UserResponse.builder()
+                        .id(user.getId())
+                        .fullName(user.getFullName())
+                        .email(user.getEmail())
+                        .updatedAt(user.getUpdatedAt())
+                        .createdAt(user.getCreatedAt())
+                        .role(user.getRole())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void updateUserRole(Long id, Role newRole) { // 👈 Accepts Role enum
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
-        
-        // Don't allow changing own role
-        if (user.getId().equals(currentUser.getId())) {
-            throw new UnauthorizedException("You cannot change your own role");
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if ("admin".equals(user.getUsername()) && newRole != Role.ADMIN) {
+            throw new RuntimeException("The primary administrator role cannot be changed.");
         }
-        
-        user.setRole(newRole);
-        User updatedUser = userRepository.save(user);
-        
-        return mapToUserSummary(updatedUser);
+        user.setRole(newRole); // No conversion needed!
+        userRepository.save(user);
     }
     
     private ProjectResponse.UserSummary mapToUserSummary(User user) {

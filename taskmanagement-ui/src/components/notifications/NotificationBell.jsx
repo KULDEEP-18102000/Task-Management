@@ -1,24 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Bell } from 'lucide-react';
-import { fetchUnreadCount } from '../../store/slices/notificationSlice';
+import notificationService from '../../services/notificationService';
 import NotificationPanel from './NotificationPanel';
 
 const NotificationBell = () => {
-  const dispatch = useDispatch();
-  const { unreadCount } = useSelector((state) => state.notifications);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
-  useEffect(() => {
-    dispatch(fetchUnreadCount());
-    
-    // Poll for unread count every 30 seconds
-    const interval = setInterval(() => {
-      dispatch(fetchUnreadCount());
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, [dispatch]);
+  // Fetch unread count with polling
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ['notifications', 'unread-count'],
+    queryFn: () => notificationService.getUnreadCount(),
+    refetchInterval: 30000, // Poll every 30 seconds
+  });
 
   return (
     <>

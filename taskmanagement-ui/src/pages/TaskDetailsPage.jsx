@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
 import { ArrowLeft, Calendar, Flag, User, Edit2, Trash2 } from 'lucide-react';
 import Layout from '../components/layout/Layout';
@@ -10,8 +10,8 @@ import Button from '../components/common/Button';
 import Loader from '../components/common/Loader';
 import TaskForm from '../components/tasks/TaskForm';
 import ConfirmModal from '../components/common/ConfirmModal';
-import { deleteTask } from '../store/slices/taskSlice';
 import taskService from '../services/taskService';
+import toast from 'react-hot-toast';
 import { 
   TASK_STATUS_LABELS, 
   TASK_STATUS_COLORS,
@@ -24,43 +24,35 @@ import { formatDate } from '../utils/helpers';
 const TaskDetailsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const { user } = useAuth();
-  const [task, setTask] = useState(null);
-  const [loading, setLoading] = useState(true);
+
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    fetchTask();
-  }, [id]);
+  // Fetch Task Details
+  const { data: task, isLoading: loading, refetch } = useQuery({
+    queryKey: ['tasks', id],
+    queryFn: () => taskService.getTaskById(id),
+    enabled: !!id,
+  });
 
-  const fetchTask = async () => {
-    setLoading(true);
-    try {
-      const data = await taskService.getTaskById(id);
-      setTask(data);
-    } catch (error) {
-      console.error('Failed to fetch task:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Delete Task Mutation
+  const deleteMutation = useMutation({
+    mutationFn: () => taskService.deleteTask(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['projects']);
+      queryClient.invalidateQueries(['dashboard']);
+      toast.success('Task deleted successfully');
+      navigate('/dashboard');
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to delete task');
+    },
+  });
 
-  const handleDelete = async () => {
-    setIsDeleting(true);
-    try {
-      await dispatch(deleteTask(task.id)).unwrap();
-      setIsDeleteModalOpen(false);
-      navigate('/dashboard'); // Redirect to dashboard after deletion
-    } catch (error) {
-      setIsDeleting(false);
-    }
-  };
-
-  const handleTaskUpdated = () => {
-    fetchTask(); // Refresh task data after edit
+  const handleDelete = () => {
+    deleteMutation.mutate();
   };
 
   // Permission checks
@@ -216,7 +208,7 @@ const TaskDetailsPage = () => {
           isOpen={isEditModalOpen}
           onClose={() => {
             setIsEditModalOpen(false);
-            handleTaskUpdated();
+            refetch();
           }}
           task={task}
           mode="edit"
@@ -233,7 +225,7 @@ const TaskDetailsPage = () => {
         confirmText="Delete"
         cancelText="Cancel"
         variant="danger"
-        loading={isDeleting}
+        loading={deleteMutation.isPending}
       />
     </Layout>
   );

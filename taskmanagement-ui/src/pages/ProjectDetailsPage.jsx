@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
-import { fetchProjectById } from '../store/slices/projectSlice';
-import { fetchTasks } from '../store/slices/taskSlice';
+import projectService from '../services/projectService';
 import taskService from '../services/taskService';
 import Layout from '../components/layout/Layout';
 import TaskCard from '../components/tasks/TaskCard';
@@ -17,43 +16,30 @@ import ProjectForm from '../components/projects/ProjectForm';
 const ProjectDetailsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const { user } = useAuth();
-  const { currentProject, loading } = useSelector((state) => state.projects);
-  const { tasks } = useSelector((state) => state.tasks);
   
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [isEditProjectOpen, setIsEditProjectOpen] = useState(false);
-  const [projectTasks, setProjectTasks] = useState([]);
-  const [loadingTasks, setLoadingTasks] = useState(false);
 
-  const isOwner = currentProject?.owner.id === user?.id;
+  // Fetch Project Details
+  const { data: currentProject, isLoading: loadingProject } = useQuery({
+    queryKey: ['projects', id],
+    queryFn: () => projectService.getProjectById(id),
+    enabled: !!id,
+  });
+
+  // Fetch Project Tasks
+  const { data: projectTasks = [], isLoading: loadingTasks } = useQuery({
+    queryKey: ['projects', id, 'tasks'],
+    queryFn: () => taskService.getTasksByProject(id),
+    enabled: !!id,
+  });
+
+  const isOwner = currentProject?.owner?.id === user?.id;
   const isAdmin = user?.role === USER_ROLES.ADMIN;
   const canEdit = isOwner || isAdmin;
 
-  useEffect(() => {
-    dispatch(fetchProjectById(id));
-  }, [dispatch, id]);
-
-  useEffect(() => {
-    const fetchProjectTasks = async () => {
-      setLoadingTasks(true);
-      try {
-        const data = await taskService.getTasksByProject(id);
-        setProjectTasks(data);
-      } catch (error) {
-        console.error('Failed to fetch project tasks:', error);
-      } finally {
-        setLoadingTasks(false);
-      }
-    };
-
-    if (id) {
-      fetchProjectTasks();
-    }
-  }, [id, tasks]);
-
-  if (loading) {
+  if (loadingProject) {
     return (
       <Layout>
         <Loader fullScreen />

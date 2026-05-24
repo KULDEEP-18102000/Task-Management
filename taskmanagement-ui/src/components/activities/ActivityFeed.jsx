@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Activity as ActivityIcon, RefreshCw } from 'lucide-react';
 import ActivityItem from './ActivityItem';
 import Loader from '../common/Loader';
@@ -6,45 +6,26 @@ import Button from '../common/Button';
 import activityService from '../../services/activityService';
 
 const ActivityFeed = ({ type = 'recent', taskId, projectId, limit = 20 }) => {
-  const [activities, setActivities] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-
-  useEffect(() => {
-    fetchActivities();
-  }, [type, taskId, projectId, limit]);
-
-  const fetchActivities = async () => {
-    setLoading(true);
-    try {
-      let data;
-      
+  // Fetch Activities using useQuery
+  const { data: activities = [], isLoading: loading, isFetching: refreshing, refetch } = useQuery({
+    queryKey: ['activities', type, { taskId, projectId, limit }],
+    queryFn: async () => {
       switch (type) {
         case 'task':
-          data = await activityService.getTaskActivities(taskId);
-          break;
+          return activityService.getTaskActivities(taskId);
         case 'project':
-          data = await activityService.getProjectActivities(projectId);
-          break;
+          return activityService.getProjectActivities(projectId);
         case 'user':
-          data = await activityService.getUserActivities(limit);
-          break;
+          return activityService.getUserActivities(limit);
         default:
-          data = await activityService.getRecentActivities(limit);
+          return activityService.getRecentActivities(limit);
       }
-      
-      setActivities(data);
-    } catch (error) {
-      console.error('Failed to fetch activities:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    enabled: true,
+  });
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await fetchActivities();
-    setRefreshing(false);
+  const handleRefresh = () => {
+    refetch();
   };
 
   if (loading) {

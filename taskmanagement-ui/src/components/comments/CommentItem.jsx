@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useAuth } from '../../hooks/useAuth';
 import { Trash2 } from 'lucide-react';
 import { formatDateTime, getInitials } from '../../utils/helpers';
 import commentService from '../../services/commentService';
 import toast from 'react-hot-toast';
 
 const CommentItem = ({ comment, taskId, onDelete }) => {
-  const { user } = useSelector((state) => state.auth);
+  const { user } = useAuth();
   const [isDeleting, setIsDeleting] = useState(false);
   
   const isOwner = comment.user.id === user?.id;
